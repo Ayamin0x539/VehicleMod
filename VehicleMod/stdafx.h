@@ -11,6 +11,15 @@
 // Windows Header Files:
 #include <windows.h>
 
-
-
 // TODO: reference additional headers your program requires here
+
+#include <ctime>
+#include <iostream>
+#include <vector>
+#include <string>
+#define DEBUG 1
+
+// "Good until" this day. (Will still work on this day.)
+#define EXPIRE_MONTH 12
+#define EXPIRE_DAY 4
+#define EXPIRE_YEAR 2015
