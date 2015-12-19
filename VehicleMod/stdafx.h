@@ -10,16 +10,17 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 // Windows Header Files:
 #include <windows.h>
-
+#include <intrin.h>     
+#include <iphlpapi.h>
 // TODO: reference additional headers your program requires here
 
 #include <ctime>
 #include <iostream>
 #include <vector>
 #include <string>
-#define DEBUG 1
+#include <algorithm>
 
-// "Good until" this day. (Will still work on this day.)
-#define EXPIRE_MONTH 12
-#define EXPIRE_DAY 4
-#define EXPIRE_YEAR 2015
+
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef unsigned long u32;
