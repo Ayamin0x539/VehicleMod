@@ -41,7 +41,7 @@ void mainloop() {
 			Sleep(100);
 		}
 	}
-	else {
+	else if(!validExpire) {
 		Sleep(500);
 		Utilities::message("HACK OUTDATED. \nIt's been patched.\nExiting...");
 		//std::terminate();

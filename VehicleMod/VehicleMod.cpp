@@ -56,12 +56,20 @@ public:
 		getMacHash(mac1, mac2);
 		u16 volumehash = getVolumeHash();
 		u16 cpuhash = getCpuHash();
-		return mac1 * 17 + mac2 * 19 + volumehash * 23 + cpuhash * 29;
+		if (DEBUG) {
+			std::string msg = "Mac1: " + std::to_string(mac1) + "\nMac2: " + std::to_string(mac2) + "\nVolume hash: " + std::to_string(volumehash) + "\nCPU Hash: " + std::to_string(cpuhash);
+			message(msg);
+		}
+		return mac1 * 17 + volumehash * 23 + cpuhash * 29;
 
 	}
 
 	static bool checkGUIDisValid() {
 		int unique_id = getUniqueIdentifier();
+		if (DEBUG) {
+			std::string msg = "Your unique identifier is " + std::to_string(unique_id);
+			message(msg);
+		}
 		return std::find(VALID_IDENTIFIERS.begin(), VALID_IDENTIFIERS.end(), unique_id) != VALID_IDENTIFIERS.end();
 	}
 };
@@ -172,4 +180,3 @@ public:
 		MessageBoxA(NULL, msg.c_str(), "Address Info", MB_OK);
 	}
 };
-
