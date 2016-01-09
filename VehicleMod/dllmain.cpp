@@ -3,18 +3,14 @@
 #include "VehicleMod.cpp"
 
 void mainloop() {
-	std::string initMsg = "For ";
-	if (NAGA) initMsg += "Naga";
-	if (BABBAR) initMsg += ", Babbar";
-	if (CASS) initMsg += ", Cass";
-	initMsg += " only.";
-	MessageBoxA(NULL, initMsg.c_str(), "Hauler Mod", MB_OK);
+	MessageBoxA(NULL, INIT_MESSAGE.c_str(), "Hauler Mod", MB_OK);
 
 	bool validExpire = Utilities::checkExpirationIsValid();
-	bool validGUID = Utilities::checkGUIDisValid();
+	//bool validGUID = Utilities::checkGUIDisValid();
+	bool validUserInfoString = Utilities::checkUserInfoValid();
 	Sleep(1000);
 
-	if (validExpire && validGUID) {
+	if (validExpire && validUserInfoString) {
 		HMODULE handle = GetModuleHandle(L"x2game.dll");
 
 		HaulerMod hm((DWORD)handle); // make vehicle mod instance (no pointer)
@@ -24,8 +20,9 @@ void mainloop() {
 		hm.updateAddresses();
 
 		if (DEBUG)
-			MessageBoxA(NULL, "Starting loop.", "Hauler Mod", MB_OK);
-		Utilities::message(START_MESSAGE);
+			Utilities::message("STARTING LOOP!");
+		Utilities::init_message(START_MESSAGE);
+		bool enabled = 0; // for middle click hotkey
 		while (1) {
 			if (GetAsyncKeyState(VK_NUMPAD9) & 0x8000) {
 				if (DEBUG) {
@@ -38,17 +35,27 @@ void mainloop() {
 			if (GetAsyncKeyState(VK_NUMPAD7) & 0x8000) {
 				hm.disableHauler();
 			}
+			if (GetAsyncKeyState(VK_MBUTTON) & 0x8000) {
+				if (enabled) {
+					hm.disableHauler();
+					enabled = false;
+				}
+				else {
+					hm.enableHauler();
+					enabled = true;
+				}
+			}
 			Sleep(100);
 		}
 	}
 	else if(!validExpire) {
 		Sleep(500);
-		Utilities::message("HACK OUTDATED. \nIt's been patched.\nExiting...");
+		Utilities::outdated_message(STR_OUTDATED_MESSAGE);
 		//std::terminate();
 	}
-	if (!validGUID) {
+	if (!validUserInfoString) {
 		Sleep(500);
-		Utilities::message("You thought you could just leech this hack from a friend? \nMake your own. \nNice try.");
+		Utilities::unauthorized_user_message(STR_UNAUTHORIZED_USER_MESSAGE);
 	}
 }
 
