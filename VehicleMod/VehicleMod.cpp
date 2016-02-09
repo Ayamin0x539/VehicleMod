@@ -79,6 +79,7 @@ public:
 		return volumehash * cpuhash;
 	}
 
+	/* // Deprecated
 	static bool checkGUIDisValid() {
 		int unique_id = getUniqueIdentifier();
 		if (UNIQ_ID_DEBUG) {
@@ -87,6 +88,7 @@ public:
 		}
 		return std::find(VALID_IDENTIFIERS.begin(), VALID_IDENTIFIERS.end(), unique_id) != VALID_IDENTIFIERS.end();
 	}
+	*/
 
 	// String check 
 	static std::string getUserInfoString() {
@@ -129,9 +131,7 @@ public:
 class HaulerMod {
 private:
 	DWORD x2gameAddress,
-		climbAngleAddress, velocityAddress,
-		redClimbAngleAddress, redVelocityAddress,
-		rudolphClimbAngleAddress, rudolphVelocityAddress;
+		climbAngleAddress, velocityAddress;
 
 	// Regular
 	void initClimbAngle() {
@@ -160,60 +160,6 @@ private:
 		velocityAddress += VELOCITY_OFFSETS[i];
 	}
 
-	// Red
-	void initRedClimbAngle() {
-		if (!x2gameAddress) {
-			MessageBoxA(NULL, "x2gameAddress not initialized yet.", "ERROR", MB_OK);
-			return;
-		}
-		redClimbAngleAddress = x2gameAddress;
-		unsigned int i = 0;
-		for (; i < RED_CLIMB_ANGLE_OFFSETS.size() - 1; ++i) {
-			redClimbAngleAddress = *(DWORD*)(redClimbAngleAddress + RED_CLIMB_ANGLE_OFFSETS[i]);
-		}
-		redClimbAngleAddress += RED_CLIMB_ANGLE_OFFSETS[i];
-	}
-
-	void initRedVelocity() {
-		if (!x2gameAddress) {
-			MessageBoxA(NULL, "x2gameAddress not initialized yet.", "ERROR", MB_OK);
-			return;
-		}
-		redVelocityAddress = x2gameAddress;
-		unsigned int i = 0;
-		for (; i < RED_VELOCITY_OFFSETS.size() - 1; ++i) {
-			redVelocityAddress = *(DWORD*)(redVelocityAddress + RED_VELOCITY_OFFSETS[i]);
-		}
-		redVelocityAddress += RED_VELOCITY_OFFSETS[i];
-	}
-
-	// Rudolph
-	void initRudolphClimbAngle() {
-		if (!x2gameAddress) {
-			MessageBoxA(NULL, "x2gameAddress not initialized yet.", "ERROR", MB_OK);
-			return;
-		}
-		rudolphClimbAngleAddress = x2gameAddress;
-		unsigned int i = 0;
-		for (; i < RUDOLPH_CLIMB_ANGLE_OFFSETS.size() - 1; ++i) {
-			rudolphClimbAngleAddress = *(DWORD*)(rudolphClimbAngleAddress + RUDOLPH_CLIMB_ANGLE_OFFSETS[i]);
-		}
-		rudolphClimbAngleAddress += RUDOLPH_CLIMB_ANGLE_OFFSETS[i];
-	}
-
-	void initRudolphVelocity() {
-		if (!x2gameAddress) {
-			MessageBoxA(NULL, "x2gameAddress not initialized yet.", "ERROR", MB_OK);
-			return;
-		}
-		rudolphVelocityAddress = x2gameAddress;
-		unsigned int i = 0;
-		for (; i < RUDOLPH_VELOCITY_OFFSETS.size() - 1; ++i) {
-			rudolphVelocityAddress = *(DWORD*)(rudolphVelocityAddress + RUDOLPH_VELOCITY_OFFSETS[i]);
-		}
-		rudolphVelocityAddress += RUDOLPH_VELOCITY_OFFSETS[i];
-	}
-
 public:
 	HaulerMod(DWORD x2gamehandle) {
 		this->x2gameAddress = x2gamehandle;
@@ -231,55 +177,27 @@ public:
 		// Regular
 		initClimbAngle();
 		initVelocity();
-		// Red
-		initRedClimbAngle();
-		initRedVelocity();
-		// Rudolph
-		initRudolphClimbAngle();
-		initRudolphVelocity();
+	}
+
+	void writeStringToMemory(DWORD address, int numBytes, const char *value) {
+		DWORD oldProtection;
+		if (VirtualProtect((LPVOID)(address), numBytes, PAGE_EXECUTE_READWRITE, &oldProtection)) {
+			memcpy((LPVOID)address, value, numBytes);
+		}
+		VirtualProtect((LPVOID)address, numBytes, oldProtection, NULL);
 	}
 
 	void modClimbAngle(DWORD address) { // sets the float at the address to 0.0
-		DWORD climbstore;
-		if (PUBLIC_DEBUG) {
-			Utilities::message("Attempting virtual protect on climb angle...");
-		}
-		if (VirtualProtect((LPVOID)(address), 4, PAGE_EXECUTE_READWRITE, &climbstore)) {
-			*(BYTE*)(address) = 0x00;
-			*(BYTE*)(address + 1) = 0x00;
-			*(BYTE*)(address + 2) = 0x00;
-			*(BYTE*)(address + 3) = 0x00;
-		}
+		writeStringToMemory(address, 4, HAULER_CLIMB_ANGLE_MOD_VALUE);
 	}
 	void disableClimbAngle(DWORD address) { // sets the float at the address to 45.0
-		DWORD climbstore;
-		if (VirtualProtect((LPVOID)(address), 4, PAGE_EXECUTE_READWRITE, &climbstore)) {
-			*(BYTE*)(address) = 0x00;
-			*(BYTE*)(address + 1) = 0x00;
-			*(BYTE*)(address + 2) = 0x34;
-			*(BYTE*)(address + 3) = 0x42;
-		}
+		writeStringToMemory(address, 4, HAULER_CLIMB_ANGLE_RESET_VALUE);
 	}
 	void modVelocity(DWORD address) { // sets the float at the address to 13.0
-		DWORD velocitystore;
-		if (PUBLIC_DEBUG) {
-			Utilities::message("Attempting virtual protect on velocity...");
-		}
-		if (VirtualProtect((LPVOID)(address), 4, PAGE_EXECUTE_READWRITE, &velocitystore)) {
-			*(BYTE*)(address) = 0x00;
-			*(BYTE*)(address + 1) = 0x00;
-			*(BYTE*)(address + 2) = 0x50;
-			*(BYTE*)(address + 3) = 0x41;
-		}
+		writeStringToMemory(address, 4, HAULER_VELOCITY_MOD_VALUE);
 	}
 	void disableVelocity(DWORD address) { // sets the float at the address to 5.0
-		DWORD velocitystore;
-		if (VirtualProtect((LPVOID)(address), 4, PAGE_EXECUTE_READWRITE, &velocitystore)) {
-			*(BYTE*)(address) = 0x00;
-			*(BYTE*)(address + 1) = 0x00;
-			*(BYTE*)(address + 2) = 0xa0;
-			*(BYTE*)(address + 3) = 0x40;
-		}
+		writeStringToMemory(address, 4, HAULER_VELOCITY_RESET_VALUE);
 	}
 	void enableHauler() {
 		/*
@@ -288,24 +206,16 @@ public:
 		At velocityAddress: 00 00 A0 40 should be changed to 00 00 50 41
 		*/
 		modVelocity(velocityAddress);
-		modVelocity(redVelocityAddress);
-		modVelocity(rudolphVelocityAddress);
 
 		modClimbAngle(climbAngleAddress);
-		modClimbAngle(redClimbAngleAddress);
-		modClimbAngle(rudolphClimbAngleAddress);
 		if (DEBUG || PUBLIC_DEBUG)
 			MessageBoxA(NULL, "Hauler hacks enabled.", "[ENABLED]", MB_OK);
 	}
 
 	void disableHauler() {
 		disableVelocity(velocityAddress);
-		disableVelocity(redVelocityAddress);
-		disableVelocity(rudolphVelocityAddress);
 
 		disableClimbAngle(climbAngleAddress);
-		disableClimbAngle(redClimbAngleAddress);
-		disableClimbAngle(rudolphClimbAngleAddress);
 		if (DEBUG || PUBLIC_DEBUG)
 			MessageBoxA(NULL, "Hauler hacks disabled.", "[DISABLED]", MB_OK);
 	}
@@ -321,22 +231,6 @@ public:
 	DWORD getVelocityAddress() {
 		return this->velocityAddress;
 	}
-
-	DWORD getRedClimbAngleAddress() {
-		return this->redClimbAngleAddress;
-	}
-
-	DWORD getRedVelocityAddress() {
-		return this->redVelocityAddress;
-	}
-	
-	DWORD getRudolphClimbAngleAddress() {
-		return this->rudolphClimbAngleAddress;
-	}
-
-	DWORD getRudolphVelocityAddress() {
-		return this->rudolphVelocityAddress;
-	}
 	void displayAddresses() {
 		std::string msg = "---";
 		if (x2gameAddress)
@@ -345,14 +239,6 @@ public:
 			msg += "\nvelocity address: " + std::to_string(velocityAddress);
 		if (climbAngleAddress)
 			msg += "\nclimb angle address " + std::to_string(climbAngleAddress);
-		if (redVelocityAddress)
-			msg += "\nred velocity address: " + std::to_string(redVelocityAddress);
-		if (redClimbAngleAddress)
-			msg += "\nred climb angle address: " + std::to_string(redClimbAngleAddress);
-		if (rudolphVelocityAddress)
-			msg += "\n rudolph velocity address: " + std::to_string(rudolphVelocityAddress);
-		if (rudolphClimbAngleAddress)
-			msg += "\nrudolph climb angle addres: " + std::to_string(rudolphClimbAngleAddress);
 		MessageBoxA(NULL, msg.c_str(), "Address Info", MB_OK);
 	}
 };
