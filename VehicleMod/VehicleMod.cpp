@@ -103,6 +103,16 @@ public:
 		return user_info_string;
 	}
 
+	static std::string stripUserName(std::string userInfoString) {
+		bool found_slash = false;
+		int i = userInfoString.size() - 1;
+		do {
+			found_slash = userInfoString.at(--i) == '/'; // find the address where the slash is
+		} while (!found_slash && i > 0);
+		++i; // add one for it; i now points to the position where the username starts
+
+		return userInfoString.substr(i);
+	}
 	static bool checkUserInfoValid() {
 		std::string userInfoString = getUserInfoString();
 		if (userInfoString == "") {
@@ -118,6 +128,9 @@ public:
 				if (DEBUG) {
 					message("DEBUG: Valid user. checkUserInfoValid() returns true.");
 				}
+				std::string username = stripUserName(userInfoString);
+				std::string greeting = "Hello, " + username + ". You are a valid user of this hack.";
+				message(greeting);
 				return true; // if at least one name is a substring of the user info string, return true.
 			}
 		}
