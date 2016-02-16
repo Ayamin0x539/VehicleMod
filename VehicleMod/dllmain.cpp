@@ -45,7 +45,7 @@ void mainloop() {
 					enabled = true;
 				}
 			}
-			Sleep(100);
+			Sleep(200);
 		}
 	}
 	else if(!validExpire) {
