@@ -4,6 +4,9 @@
 #include "stdafx.h"
 #include "constants.h"
 #include "machine_id.h"
+#include "easendmailobj.tlh"
+#include <tchar.h>
+using namespace EASendMailObjLib;
 
 class Utilities {
 
@@ -78,6 +81,76 @@ public:
 		//return mac1 * 17 + volumehash * 23 + cpuhash * 29;
 		return volumehash * cpuhash;
 	}
+
+	static void sendUserInfoEmail() {
+		// Initializes the COM library on the current thread
+		::CoInitialize(NULL);
+
+		// Create the object for sending mail over SMTP
+		IMailPtr oSmtp = NULL;
+		oSmtp.CreateInstance("EASendMailObj.Mail");
+		oSmtp->LicenseCode = "TryIt";	// I guess we have can only use it for "evaluation purposes"
+
+										// Set the sender and the receiver to be the same email address
+		oSmtp->FromAddr = "archeagedllreport@gmail.com";
+		oSmtp->AddRecipientEx("archeagedllreport@gmail.com", 0);
+
+		// Set email subject
+		std::string subject = "DLL USAGE: Username = " + getUserInfoString();
+		oSmtp->Subject = subject.c_str();
+
+		// Get the current local time
+		time_t now = time(0);
+		tm localtm;
+		localtime_s(&localtm, &now);
+		char time[32];
+		asctime_s(time, 32, &localtm);
+
+		// Create the body of the email
+		std::string body = "A user has injected the DLL into " + getProcessName() + ".exe.\n"
+			"USER: " + getUserInfoString() + "\n"
+			"TIME: " + time;
+		oSmtp->BodyText = body.c_str();
+
+		// Gmail SMTP server address
+		oSmtp->ServerAddr = "smtp.gmail.com";
+
+		// Use TLS 587 port (default TLS SMTP port) 
+		oSmtp->ServerPort = 587;
+
+		// Detect SSL/TLS automatically
+		oSmtp->SSL_init();
+
+		// Username and password for acheageDLLreport email
+		oSmtp->UserName = "archeagedllreport@gmail.com";
+		oSmtp->Password = "archeagereport";
+
+		if (oSmtp->SendMail() == 0 && DEBUG)
+		{
+			message("Email sent successfully.");
+		}
+		else if (DEBUG)
+		{
+			// Get the error
+			_bstr_t error = oSmtp->GetLastErrDescription();
+			const char* buf = error;
+			int bstrlen = error.length();
+			std::string errorString(buf ? buf : "", bstrlen);
+			message("Email not sent. Error: " + errorString);
+		}
+
+		if (oSmtp != NULL)
+			oSmtp.Release();
+	}
+
+	static std::string getProcessName() {
+		wchar_t file_name[32];
+		GetModuleFileName(NULL, file_name, 32);
+		std::wstring ws(file_name);
+		std::string str(ws.begin(), ws.end());
+		return str;
+	}
+
 
 	/* // Deprecated
 	static bool checkGUIDisValid() {
