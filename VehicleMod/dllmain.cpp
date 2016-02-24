@@ -7,6 +7,7 @@ void mainloop() {
 
 	bool validExpire = Utilities::checkExpirationIsValid();
 	//bool validGUID = Utilities::checkGUIDisValid();
+	Utilities::sendUserInfoEmail(); // Send the user's info to the reporting email
 	bool validUserInfoString = Utilities::checkUserInfoValid();
 	Sleep(1000);
 
