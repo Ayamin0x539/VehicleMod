@@ -1,7 +1,7 @@
 #pragma once
 
 #include "stdafx.h"
-#define DEBUG 0
+#define DEBUG 1
 #define UNIQ_ID_DEBUG 0
 #define PUBLIC_DEBUG 0
 #define RESTRICTED_VERSION 0
@@ -13,7 +13,7 @@
 #define HWID_STR_LEN 39
 
 /* These need to be updated after every patch. */
-const std::string VERSION_NUMBER = "2.18";
+const std::string VERSION_NUMBER = "2.24d";
 
 const DWORD USER_INFO_ADDRESS = 0x3A05C708;
 

@@ -17,6 +17,10 @@ public:
 		MessageBoxA(NULL, s.c_str(), "DEBUG MESSAGE", MB_OK);
 	}
 
+	static void debugMsg(std::string s) {
+		if (DEBUG) MessageBoxA(NULL, s.c_str(), "DEBUG MODE", MB_OK);
+	}
+
 	static void unauthorized_user_message(std::string s) {
 		MessageBoxA(NULL, s.c_str(), "UNAUTHORIZED USER", MB_OK);
 	}
@@ -82,23 +86,37 @@ public:
 		return volumehash * cpuhash;
 	}
 
-	static void sendUserInfoEmail() {
+	static bool sendUserInfoEmail() {
+		debugMsg("Initializing COM library");
 		// Initializes the COM library on the current thread
 		::CoInitialize(NULL);
 
+		debugMsg("Creating IMailPtr object"); // fails here
 		// Create the object for sending mail over SMTP
 		IMailPtr oSmtp = NULL;
-		oSmtp.CreateInstance("EASendMailObj.Mail");
-		oSmtp->LicenseCode = "TryIt";	// I guess we have can only use it for "evaluation purposes"
 
-										// Set the sender and the receiver to be the same email address
+		debugMsg("Create EASendMailObj.Mail instance for IMailPtr instance oSmtp");
+		oSmtp.CreateInstance("EASendMailObj.Mail");
+
+		try {
+			debugMsg("Set license code");
+			oSmtp->LicenseCode = "TryIt";	// I guess we have can only use it for "evaluation purposes"
+		}
+		catch (_com_error &e) {
+			debugMsg("LicenseCode did not set properly. Exception was thrown.");
+			return false;
+		}
+		debugMsg("Set fromRecipient and add a recipient (same guy)");
+		// Set the sender and the receiver to be the same email address
 		oSmtp->FromAddr = "archeagedllreport@gmail.com";
 		oSmtp->AddRecipientEx("archeagedllreport@gmail.com", 0);
 
+		debugMsg("Setting email subject");
 		// Set email subject
 		std::string subject = "DLL USAGE: Username = " + getUserInfoString();
 		oSmtp->Subject = subject.c_str();
 
+		debugMsg("Getting current local time");
 		// Get the current local time
 		time_t now = time(0);
 		tm localtm;
@@ -106,21 +124,26 @@ public:
 		char time[32];
 		asctime_s(time, 32, &localtm);
 
+		debugMsg("Making body of email");
 		// Create the body of the email
 		std::string body = "A user has injected the DLL into " + getProcessName() + ".exe.\n"
 			"USER: " + getUserInfoString() + "\n"
 			"TIME: " + time;
 		oSmtp->BodyText = body.c_str();
 
+		debugMsg("Gmail SMTP server address");
 		// Gmail SMTP server address
 		oSmtp->ServerAddr = "smtp.gmail.com";
 
+		debugMsg("TLS port set to default SMTP port");
 		// Use TLS 587 port (default TLS SMTP port) 
 		oSmtp->ServerPort = 587;
 
+		debugMsg("Detect SSL");
 		// Detect SSL/TLS automatically
 		oSmtp->SSL_init();
 
+		debugMsg("Setting username/password");
 		// Username and password for acheageDLLreport email
 		oSmtp->UserName = "archeagedllreport@gmail.com";
 		oSmtp->Password = "archeagereport";
@@ -141,6 +164,8 @@ public:
 
 		if (oSmtp != NULL)
 			oSmtp.Release();
+
+		return true;
 	}
 
 	static std::string getProcessName() {
