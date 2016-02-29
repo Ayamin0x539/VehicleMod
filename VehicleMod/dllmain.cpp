@@ -1,6 +1,8 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "stdafx.h"
 #include "VehicleMod.cpp"
+#include "Utilities.h"
+#include "Zoom.h"
 
 void mainloop() {
 	MessageBoxA(NULL, INIT_MESSAGE.c_str(), "Hauler Mod", MB_OK);
@@ -21,6 +23,20 @@ void mainloop() {
 		Sleep(5000);
 
 		hm.updateAddresses();
+
+		/*********** Init Zoom Stuff ***********/
+		
+		if (DEBUG) Utilities::message("Initializing zoom instruction address... via pattern search...");
+		initializeZoomInstructionAddress();
+
+		if (ZOOM_INSTRUCTION_ADDRESS) {
+			if (DEBUG) Utilities::message("Beginning detour...");
+			detourZoomAndModifyZoomValue();
+		}
+		else {
+			if (DEBUG) Utilities::message("Zoom INSTRUCTION address wasn't found by pattern search!");
+		}
+		/*********** End Zoom Stuff ***********/
 
 		if (DEBUG)
 			Utilities::message("STARTING LOOP!");
